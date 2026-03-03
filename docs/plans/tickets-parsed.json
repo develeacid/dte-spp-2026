@@ -1,0 +1,968 @@
+[
+  {
+    "id": "S0-T1",
+    "title": "Configurar Docker con servicios base",
+    "type": "chore",
+    "branch": "chore/S0-T1-configuracion-docker",
+    "description": "Crear el archivo `docker-compose.yml` con los servicios necesarios para el entorno de desarrollo local.\n\n**Servicios requeridos:**\n- Servidor web (Nginx)\n- PHP-FPM (version compatible con Laravel 11+)\n- PostgreSQL (version 16+)\n- Redis (colas y cache)",
+    "acceptance_criteria": [
+      "`docker compose up -d` levanta todos los servicios sin errores",
+      "PostgreSQL acepta conexiones en el puerto configurado",
+      "Redis responde a `ping`",
+      "PHP-FPM sirve correctamente una pagina de prueba",
+      "Archivo `.env.example` documenta las variables de conexion"
+    ],
+    "sprint": "Sprint 0"
+  },
+  {
+    "id": "S0-T2",
+    "title": "Instalar extension pgvector en PostgreSQL",
+    "type": "chore",
+    "branch": "chore/S0-T2-pgvector-postgres",
+    "description": "Configurar la imagen de Docker de PostgreSQL para incluir la extension `pgvector`. Crear migracion inicial que ejecute `CREATE EXTENSION IF NOT EXISTS vector`.",
+    "acceptance_criteria": [
+      "La extension pgvector esta disponible en el contenedor de PostgreSQL",
+      "Migracion de Laravel ejecuta `CREATE EXTENSION vector` exitosamente",
+      "Se puede crear una columna de tipo `vector(1536)` sin errores",
+      "Documentar version de pgvector instalada"
+    ],
+    "sprint": "Sprint 0"
+  },
+  {
+    "id": "S0-T3",
+    "title": "Inicializar proyecto Laravel con stack TALL",
+    "type": "feat",
+    "branch": "feat/S0-T3-inicializacion-tall",
+    "description": "Crear el proyecto base de Laravel. Instalar y configurar Tailwind CSS, Alpine.js y Livewire. Verificar que el frontend compile correctamente.",
+    "acceptance_criteria": [
+      "`composer create-project laravel/laravel` ejecutado exitosamente",
+      "Livewire instalado y funcional (componente de prueba renderiza)",
+      "Tailwind CSS configurado y `npm run build` compila sin errores",
+      "Alpine.js disponible en el frontend",
+      "Pagina de bienvenida renderiza con Tailwind aplicado",
+      "`.gitignore` configurado correctamente (vendor, node_modules, .env)"
+    ],
+    "sprint": "Sprint 0"
+  },
+  {
+    "id": "S0-T4",
+    "title": "Configurar Redis como driver de colas y cache",
+    "type": "chore",
+    "branch": "chore/S0-T4-redis-colas-cache",
+    "description": "Configurar Laravel para usar Redis como driver de colas (`QUEUE_CONNECTION=redis`) y cache (`CACHE_DRIVER=redis`). Verificar que los jobs se encolen y procesen correctamente.",
+    "acceptance_criteria": [
+      "`.env` configurado con `QUEUE_CONNECTION=redis` y `CACHE_DRIVER=redis`",
+      "`php artisan queue:work` procesa un job de prueba exitosamente",
+      "Cache de Laravel lee y escribe en Redis",
+      "Documentar comando para ejecutar el worker en desarrollo"
+    ],
+    "sprint": "Sprint 0"
+  },
+  {
+    "id": "S1-T1",
+    "title": "Instalar Laravel Jetstream con Teams",
+    "type": "feat",
+    "branch": "feat/S1-T1-jetstream-teams",
+    "description": "Instalar Jetstream con el stack Livewire y la funcionalidad de Teams activada. Ejecutar migraciones base. Verificar que el flujo de registro, login y creacion de equipos funcione.",
+    "acceptance_criteria": [
+      "`composer require laravel/jetstream` ejecutado",
+      "Jetstream instalado con `--teams` flag",
+      "`php artisan migrate` crea las tablas: users, teams, team_user, team_invitations, sessions, personal_access_tokens",
+      "Flujo de registro crea usuario + team personal",
+      "Login y logout funcionan correctamente",
+      "Interfaz de gestion de equipos accesible"
+    ],
+    "sprint": "Sprint 1"
+  },
+  {
+    "id": "S1-T2",
+    "title": "Extender tabla teams con campos de Unidad Responsable",
+    "type": "feat",
+    "branch": "feat/S1-T2-teams-campos-ur",
+    "description": "Crear migracion para agregar campos especificos de Unidad Responsable a la tabla `teams` de Jetstream.\n\n**Campos a agregar:**\n- `clave_ur` (string, nullable, unique) — Clave oficial de la UR\n- `titular` (string, nullable) — Nombre del titular\n- `tipo_ur` (enum: sustantiva, apoyo) — Rol en ejecucion presupuestal\n- `activa` (boolean, default: true)",
+    "acceptance_criteria": [
+      "Migracion con `up()` y `down()` completos",
+      "`migrate:fresh` ejecuta sin errores",
+      "Modelo `Team` extendido con `$fillable` actualizado",
+      "Seeder de prueba crea 3 UR de ejemplo (1 sustantiva, 1 apoyo, 1 inactiva)",
+      "Actualizar documentacion del esquema de BD"
+    ],
+    "sprint": "Sprint 1"
+  },
+  {
+    "id": "S1-T3",
+    "title": "Integrar Spatie/laravel-permission",
+    "type": "feat",
+    "branch": "feat/S1-T3-integracion-spatie-roles",
+    "description": "Instalar el paquete `spatie/laravel-permission`. Crear los roles base y permisos granulares del sistema. Configurar seeders.\n\n**Roles:**\n- `admin`\n- `planeador`\n- `operador`\n\n**Permisos:**\n- `gestionar_catalogos`\n- `crear_programa`\n- `editar_mir`\n- `capturar_avance`\n- `revisar_avance`\n- `aprobar_avance`\n- `exportar_reportes`\n- `administrar_usuarios`\n\n**Asignacion:**\n- admin: todos los permisos\n- planeador: gestionar_catalogos, crear_programa, editar_mir, revisar_avance, aprobar_avance, exportar_reportes\n- operador: capturar_avance, exportar_reportes (limitado)",
+    "acceptance_criteria": [
+      "Paquete instalado y migraciones ejecutadas",
+      "Seeder `RolesAndPermissionsSeeder` crea roles y permisos",
+      "Modelo `User` usa el trait `HasRoles`",
+      "Test: usuario con rol planeador tiene permiso `crear_programa`",
+      "Test: usuario con rol operador NO tiene permiso `crear_programa`"
+    ],
+    "sprint": "Sprint 1"
+  },
+  {
+    "id": "S1-T4",
+    "title": "Activar 2FA obligatorio",
+    "type": "feat",
+    "branch": "feat/S1-T4-2fa-obligatorio",
+    "description": "Configurar Jetstream para que la autenticacion de doble factor sea obligatoria para todos los usuarios. Redirigir a configuracion de 2FA si el usuario no lo ha activado.",
+    "acceptance_criteria": [
+      "Middleware que detecta si el usuario no tiene 2FA configurado",
+      "Redireccion automatica a pagina de configuracion de 2FA",
+      "Usuario no puede acceder a ninguna ruta protegida sin 2FA activo",
+      "Flujo de activacion de 2FA funcional (QR + codigos de respaldo)"
+    ],
+    "sprint": "Sprint 1"
+  },
+  {
+    "id": "S1-T5",
+    "title": "Middleware de aislamiento por team_id",
+    "type": "feat",
+    "branch": "feat/S1-T5-middleware-team-isolation",
+    "description": "Crear middleware global que asegure que todas las consultas a la base de datos se filtren automaticamente por el `current_team_id` del usuario autenticado. Esto garantiza el aislamiento de datos entre Unidades Responsables.",
+    "acceptance_criteria": [
+      "Middleware registrado globalmente para rutas autenticadas",
+      "Queries a `programas_presupuestarios` (y tablas dependientes) filtran por `team_id`",
+      "Un usuario del Team A no puede acceder a registros del Team B",
+      "El usuario admin puede alternar entre teams",
+      "Test: intento de acceso cruzado entre teams retorna 403"
+    ],
+    "sprint": "Sprint 1"
+  },
+  {
+    "id": "S1-T6",
+    "title": "Seeders de datos de prueba para desarrollo",
+    "type": "chore",
+    "branch": "chore/S1-T6-seeders-desarrollo",
+    "description": "Crear seeders completos para desarrollo local que generen un escenario realista de prueba.\n\n**Datos a generar:**\n- 3 Teams/UR: \"Secretaria de Educacion\", \"Secretaria de Salud\", \"Secretaria de Seguridad\"\n- 2 usuarios por team: 1 planeador + 1 operador\n- 1 usuario admin global",
+    "acceptance_criteria": [
+      "`php artisan db:seed` ejecuta sin errores",
+      "Cada usuario tiene rol y team asignado correctamente",
+      "Login con cualquier usuario de prueba funciona",
+      "2FA puede configurarse para usuarios de prueba"
+    ],
+    "sprint": "Sprint 1"
+  },
+  {
+    "id": "S2-T1",
+    "title": "Migraciones y modelos para catalogos ODS",
+    "type": "feat",
+    "branch": "feat/S2-T1-catalogos-ods",
+    "description": "Crear migraciones, modelos Eloquent y seeders para la Agenda 2030. Tablas: `ods_objetivos` y `ods_metas`. Estos son catalogos inmutables (no editables por el usuario).\n\n**Campos clave:**\n- `ods_objetivos`: id, numero (1-17), nombre, descripcion, embedding (vector 1536)\n- `ods_metas`: id, ods_objetivo_id (FK), clave (\"1.1\", \"1.2\"), descripcion, embedding",
+    "acceptance_criteria": [
+      "Migraciones con `up()` y `down()` completos",
+      "Columnas `embedding` de tipo `vector(1536)` creadas correctamente",
+      "Modelos con relaciones: `OdsObjetivo hasMany OdsMeta`",
+      "Seeder carga los 17 ODS y sus metas desde archivo Markdown fuente",
+      "`migrate:fresh --seed` ejecuta sin errores",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T2",
+    "title": "Migraciones y modelos para catalogos PND",
+    "type": "feat",
+    "branch": "feat/S2-T2-catalogos-pnd",
+    "description": "Crear migraciones, modelos y seeders para el Plan Nacional de Desarrollo. Tablas: `pnd_ejes`, `pnd_objetivos`, `pnd_estrategias`. Catalogos inmutables.\n\n**Relaciones Eloquent:**\n- `PndEje hasMany PndObjetivo`\n- `PndObjetivo hasMany PndEstrategia`\n- `PndObjetivo belongsTo PndEje`",
+    "acceptance_criteria": [
+      "Migraciones con embeddings en cada tabla",
+      "Seeder carga datos del PND vigente desde Markdown",
+      "Relaciones Eloquent definidas y funcionales",
+      "`migrate:fresh --seed` sin errores",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T3",
+    "title": "Migraciones y modelos para PED",
+    "type": "feat",
+    "branch": "feat/S2-T3-modelos-ped",
+    "description": "Crear migraciones y modelos para toda la jerarquia del Plan Estatal de Desarrollo. Estructura anidada con Adjacency List.\n\n**Tablas:**\n- `ped_planes` (id, nombre, nivel_gobierno, periodo_inicio, periodo_fin, activo)\n- `ped_ejes` (id, ped_plan_id, numero, nombre, descripcion, embedding)\n- `ped_temas` (id, ped_eje_id, numero, nombre, descripcion, embedding)\n- `ped_objetivos_estrategicos` (id, ped_tema_id, clave, descripcion, embedding)\n- `ped_estrategias` (id, ped_objetivo_estrategico_id, clave, descripcion, embedding)\n- `ped_lineas_accion` (id, ped_estrategia_id, clave, descripcion, embedding)\n\n**Relaciones Eloquent (cascada HasMany):**\n- Plan → Ejes → Temas → Objetivos → Estrategias → Lineas de Accion",
+    "acceptance_criteria": [
+      "6 migraciones con `up()` y `down()`",
+      "6 modelos con `$fillable`, relaciones `hasMany`/`belongsTo`",
+      "Constraint: solo un `ped_planes` puede tener `activo = true`",
+      "Seeder de ejemplo con datos ficticios (1 plan, 3 ejes, 2 temas por eje)",
+      "`migrate:fresh --seed` sin errores",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T4",
+    "title": "Migraciones y modelos para Programas Derivados",
+    "type": "feat",
+    "branch": "feat/S2-T4-programas-derivados",
+    "description": "Crear tablas para programas sectoriales, especiales, institucionales y regionales que emanan del PED.\n\n**Tablas:**\n- `programas_derivados` (id, ped_plan_id, tipo [enum], nombre, descripcion)\n- `programas_derivados_objetivos` (id, programa_derivado_id, clave, descripcion, embedding)",
+    "acceptance_criteria": [
+      "Migraciones completas",
+      "Enum: sectorial, especial, institucional, regional",
+      "Relaciones: ProgramaDerivado belongsTo PedPlan, hasMany Objetivos",
+      "Seeder de ejemplo",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T5",
+    "title": "Tablas pivote para Matriz de Alineacion",
+    "type": "feat",
+    "branch": "feat/S2-T5-matriz-alineacion",
+    "description": "Crear las tablas pivote muchos-a-muchos que representan la Matriz de Alineacion entre niveles de la cascada de planes.\n\n**Tablas:**\n- `alineacion_ped_pnd` (ped_objetivo_estrategico_id ↔ pnd_objetivo_id)\n- `alineacion_pnd_ods` (pnd_objetivo_id ↔ ods_meta_id)\n- `alineacion_linea_programa_derivado` (ped_linea_accion_id ↔ programa_derivado_objetivo_id)\n\n**Todas con:**\n- Constraint UNIQUE en la combinacion de FKs\n- Timestamps",
+    "acceptance_criteria": [
+      "3 migraciones con indices unicos compuestos",
+      "Relaciones `belongsToMany` configuradas en los modelos correspondientes",
+      "Seeder que crea alineaciones de ejemplo",
+      "Test: no se permite duplicar una alineacion",
+      "Test: al consultar una Linea de Accion, se puede recorrer toda la cadena hasta ODS via relaciones Eloquent",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T6",
+    "title": "CRUD de PED con interfaz Livewire",
+    "type": "feat",
+    "branch": "feat/S2-T6-crud-ped-livewire",
+    "description": "Crear la interfaz de administracion del PED. El planeador debe poder capturar y editar toda la jerarquia: Plan → Ejes → Temas → Objetivos Estrategicos → Estrategias → Lineas de Accion.\n\n**Componentes Livewire:**\n- Vista de arbol colapsable para navegar la jerarquia\n- Formularios inline para crear/editar nodos\n- Validacion de campos requeridos",
+    "acceptance_criteria": [
+      "Solo accesible con permiso `gestionar_catalogos`",
+      "Arbol colapsable renderiza toda la jerarquia del PED",
+      "CRUD completo en cada nivel (crear, editar, eliminar)",
+      "Eliminar un nodo padre advierte sobre hijos dependientes",
+      "Validacion: campos requeridos, longitud maxima",
+      "Responsive (Tailwind)"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T7",
+    "title": "CRUD de Programas Derivados con interfaz Livewire",
+    "type": "feat",
+    "branch": "feat/S2-T7-crud-programas-derivados",
+    "description": "Interfaz para gestionar los programas derivados (sectoriales, especiales, institucionales, regionales) y sus objetivos.",
+    "acceptance_criteria": [
+      "Listado de programas derivados filtrado por tipo",
+      "CRUD de programas derivados y sus objetivos",
+      "Solo accesible con permiso `gestionar_catalogos`",
+      "Vinculacion al PED activo"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T8",
+    "title": "Interfaz de Matriz de Alineacion",
+    "type": "feat",
+    "branch": "feat/S2-T8-interfaz-matriz-alineacion",
+    "description": "Crear la interfaz para que el planeador configure la Matriz de Alineacion, vinculando niveles de PED con PND y ODS. La interfaz debe mostrar la cascada y permitir crear/eliminar vinculos muchos-a-muchos.",
+    "acceptance_criteria": [
+      "Vista que muestra los 3 niveles de alineacion (PED↔PND, PND↔ODS, Linea↔Programa Derivado)",
+      "Interfaz para agregar/quitar vinculos (selects o drag-and-drop)",
+      "Al vincular, se muestra la cadena completa resultante (Linea → Estrategia → Obj. PED → PND → ODS)",
+      "Solo accesible con permiso `gestionar_catalogos`",
+      "Test: herencia automatica funciona (al seleccionar una Linea de Accion, el sistema muestra los ODS heredados)"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T9",
+    "title": "Importador de PED desde Markdown",
+    "type": "feat",
+    "branch": "feat/S2-T9-importador-markdown-ped",
+    "description": "Crear un importador que acepte un archivo Markdown con la estructura del PED y lo convierta en registros de la base de datos. El usuario debe confirmar la estructura sugerida antes de guardar.\n\n**Formato Markdown esperado:**\n```markdown\n# Plan Estatal de Desarrollo 2022-2027\n\n## Eje 1: Seguridad y Justicia\n### Tema 1.1: Prevencion del delito\n#### Objetivo 1.1.1: Reducir la incidencia delictiva juvenil\n##### Estrategia 1.1.1.1: Programas de intervencion temprana\n- Linea de Accion 1.1.1.1.1: Implementar talleres en zonas de riesgo\n- Linea de Accion 1.1.1.1.2: Crear centros comunitarios\n```",
+    "acceptance_criteria": [
+      "Acepta archivo Markdown con la estructura definida",
+      "Parsea y muestra previsualizacion del arbol resultante",
+      "Usuario puede editar/corregir antes de confirmar",
+      "Al confirmar, crea todos los registros en cascada",
+      "Maneja errores de formato con mensajes claros",
+      "Solo accesible con permiso `gestionar_catalogos`"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T10",
+    "title": "Pipeline de generacion de embeddings",
+    "type": "feat",
+    "branch": "feat/S2-T10-pipeline-embeddings",
+    "description": "Crear el servicio y los jobs de Laravel para generar embeddings vectoriales al guardar o actualizar textos de planes/objetivos. Los embeddings se almacenan en las columnas `vector(1536)` de pgvector.\n\n**Implementacion:**\n- Servicio `EmbeddingService` que encapsula la llamada al API del LLM\n- Job `GenerateEmbedding` que se despacha a la cola Redis\n- Observer en los modelos de planes que despacha el job al crear/actualizar `descripcion`",
+    "acceptance_criteria": [
+      "Servicio genera embedding y lo guarda en la columna correspondiente",
+      "Job se ejecuta de forma asincrona (no bloquea la interfaz)",
+      "Al crear un registro de PED, el embedding se genera automaticamente",
+      "Al actualizar la descripcion, el embedding se regenera",
+      "Manejo de errores: si el API falla, el registro se guarda sin embedding y se reintenta",
+      "Test con mock del API de embeddings"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S2-T11",
+    "title": "Servicio de busqueda semantica por similitud",
+    "type": "feat",
+    "branch": "feat/S2-T11-busqueda-semantica",
+    "description": "Crear servicio que realiza busquedas por similitud de cosenos usando pgvector. Se usara en la Matriz de Alineacion para sugerir correspondencias entre niveles de planes.\n\n**Implementacion:**\n- Metodo `findSimilar($texto, $tabla, $limite)` que:\n  1. Genera embedding del texto de entrada\n  2. Ejecuta query con `ORDER BY embedding <=> $vector LIMIT $limite`\n  3. Retorna los N registros mas similares con su score",
+    "acceptance_criteria": [
+      "Servicio retorna los registros mas similares ordenados por score",
+      "Funciona contra todas las tablas con embeddings (ODS, PND, PED)",
+      "Indices HNSW creados para performance",
+      "Test: buscar \"reducir pobreza\" retorna ODS 1 como primer resultado",
+      "Configurable: umbral minimo de similitud, limite de resultados"
+    ],
+    "sprint": "Sprint 2"
+  },
+  {
+    "id": "S3-T1",
+    "title": "Migracion y modelo para Programas Presupuestarios",
+    "type": "feat",
+    "branch": "feat/S3-T1-modelo-programa-presupuestario",
+    "description": "Crear la tabla cabecera `programas_presupuestarios` y la tabla de alineacion `programa_alineacion`.\n\n**Campos programas_presupuestarios:**\n- id, team_id (FK), clave_programa, nombre, ejercicio_fiscal, origen (nuevo/importado), estado (borrador/activo/cerrado), created_by (FK), timestamps, softDeletes",
+    "acceptance_criteria": [
+      "Migraciones completas con FK a teams y users",
+      "Modelo con scope de team_id (aislamiento por UR)",
+      "Relaciones: belongsTo Team, hasMany MirNiveles, hasMany Arboles",
+      "Indice en team_id y ejercicio_fiscal",
+      "Solo creacion con permiso `crear_programa`"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T2",
+    "title": "Migraciones y modelos para Arboles (Problema/Objetivos)",
+    "type": "feat",
+    "branch": "feat/S3-T2-modelos-arboles",
+    "description": "Crear tablas `arboles` y `arbol_nodos` con estructura Adjacency List para representar los arboles de problemas y objetivos.\n\n**Campos arbol_nodos:**\n- id, arbol_id (FK), parent_id (FK recursiva), tipo_nodo (enum), descripcion, nodo_origen_id (FK, vinculo problema→objetivo), orden, timestamps",
+    "acceptance_criteria": [
+      "Enum tipo_nodo cubre: problema_central, causa_directa, causa_indirecta, efecto_directo, efecto_indirecto, objetivo_central, medio_directo, medio_indirecto, fin_directo, fin_indirecto",
+      "Relacion recursiva: `ArbolNodo hasMany children`, `belongsTo parent`",
+      "`nodo_origen_id` permite vincular un nodo del arbol de objetivos con su nodo origen del arbol de problemas",
+      "Indice en parent_id",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T3",
+    "title": "Migraciones y modelos para Alternativas",
+    "type": "feat",
+    "branch": "feat/S3-T3-modelos-alternativas",
+    "description": "Crear tablas `alternativas` y `alternativa_nodos` (pivote) para representar las estrategias candidatas y su seleccion.",
+    "acceptance_criteria": [
+      "Alternativa belongsTo ProgramaPresupuestario",
+      "Pivote vincula alternativa con nodos del arbol de objetivos",
+      "Campo `seleccionada` (boolean) marca la alternativa elegida",
+      "Campo `justificacion_seleccion` documenta la decision"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T4",
+    "title": "Interfaz Etapa 1 — Definicion del problema",
+    "type": "feat",
+    "branch": "feat/S3-T4-etapa1-definicion-problema",
+    "description": "Componente Livewire para capturar el problema central del programa. La IA sugiere mejoras de redaccion.\n\n**Flujo:**\n1. Usuario escribe la situacion no deseada en un textarea\n2. Boton \"Validar con IA\" envia el texto al LLM via job en cola\n3. IA retorna sugerencia de redaccion (sin verbos, sin soluciones, claro y concreto)\n4. Usuario acepta la sugerencia o conserva su texto original\n5. Se guarda como nodo `problema_central` en el arbol de problemas",
+    "acceptance_criteria": [
+      "Textarea con contador de caracteres",
+      "Boton de asistencia IA (no obligatorio, el usuario puede omitirlo)",
+      "Respuesta de IA se muestra como sugerencia editable",
+      "Al confirmar, se crea el arbol de tipo `problema` y el nodo central",
+      "Estado guardado: el usuario puede salir y retomar"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T5",
+    "title": "Interfaz Etapa 2 — Arbol del problema",
+    "type": "feat",
+    "branch": "feat/S3-T5-etapa2-arbol-problema",
+    "description": "Interfaz visual de arbol para capturar causas y efectos del problema central. La IA sugiere nodos adicionales.\n\n**Componentes:**\n- Visualizacion de arbol (problema central al centro, causas abajo, efectos arriba)\n- Botones para agregar causa directa/indirecta y efecto directo/indirecto\n- Formulario inline para describir cada nodo\n- Boton \"Sugerir con IA\" que propone causas/efectos adicionales",
+    "acceptance_criteria": [
+      "Arbol visual renderiza correctamente con nodos colapsables",
+      "CRUD de nodos: agregar, editar, eliminar, reordenar",
+      "Causas indirectas se anidan bajo causas directas",
+      "Efectos indirectos se anidan bajo efectos directos",
+      "IA sugiere nodos y valida que no sean soluciones disfrazadas",
+      "Estado persistente entre sesiones"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T6",
+    "title": "Interfaz Etapa 3 — Arbol de objetivos",
+    "type": "feat",
+    "branch": "feat/S3-T6-etapa3-arbol-objetivos",
+    "description": "Transformacion automatica del arbol de problemas a arbol de objetivos. Cada nodo negativo se convierte en positivo. La IA sugiere la redaccion.\n\n**Flujo:**\n1. Al entrar, el sistema genera automaticamente el arbol de objetivos desde el de problemas\n2. Cada nodo muestra: texto original (tachado) → texto sugerido (positivo)\n3. Usuario revisa y aprueba/edita cada transformacion\n4. Los nodos se vinculan via `nodo_origen_id`",
+    "acceptance_criteria": [
+      "Transformacion automatica genera todos los nodos",
+      "Vinculacion `nodo_origen_id` entre arbol de problemas y objetivos",
+      "Usuario puede editar cada nodo transformado",
+      "IA sugiere redaccion positiva cuando la transformacion automatica es ambigua",
+      "Vista lado a lado: arbol de problemas vs arbol de objetivos"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T7",
+    "title": "Interfaz Etapa 4 — Seleccion de alternativas",
+    "type": "feat",
+    "branch": "feat/S3-T7-etapa4-alternativas",
+    "description": "Interfaz para agrupar los medios del arbol de objetivos en estrategias candidatas, evaluar su viabilidad y seleccionar la alternativa final.\n\n**Flujo:**\n1. Se muestran los medios (directos e indirectos) del arbol de objetivos\n2. Usuario agrupa medios en 2-3 alternativas (drag-and-drop o checkboxes)\n3. IA evalua viabilidad tecnica, institucional y presupuestal de cada agrupacion\n4. Usuario selecciona la alternativa ganadora y documenta justificacion\n5. Las ramas no seleccionadas se marcan como \"podadas\"",
+    "acceptance_criteria": [
+      "Medios del arbol de objetivos listados para agrupacion",
+      "Crear/nombrar alternativas y asignarles nodos",
+      "IA genera evaluacion de viabilidad por alternativa",
+      "Seleccion de alternativa final con justificacion obligatoria",
+      "Visualizacion: ramas podadas se muestran tachadas/grises",
+      "Solo los nodos de la alternativa seleccionada pasan a la Etapa 5"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S3-T8",
+    "title": "Servicio centralizado de llamadas al LLM",
+    "type": "feat",
+    "branch": "feat/S3-T8-servicio-llm",
+    "description": "Crear la clase `LlmService` que encapsula todas las llamadas al modelo de lenguaje. Todas las interacciones de IA del sistema pasan por este servicio.\n\n**Metodos iniciales:**\n- `suggest($prompt, $context): string` — Sugerencia de texto\n- `validate($text, $rules): ValidationResult` — Validacion contra reglas\n- `transform($text, $instruction): string` — Transformacion de texto",
+    "acceptance_criteria": [
+      "Servicio registrado en el Service Container de Laravel",
+      "Llamadas ejecutadas via jobs en cola Redis",
+      "Rate limiting configurable por usuario/sesion",
+      "Manejo de errores: timeout, API caido, respuesta invalida",
+      "Logging de todas las llamadas (prompt, respuesta, tokens, duracion)",
+      "Interfaz facilmente mockeable para tests"
+    ],
+    "sprint": "Sprint 3"
+  },
+  {
+    "id": "S4-T1",
+    "title": "Interfaz Etapa 5 — Estructura Analitica del Programa (EAP)",
+    "type": "feat",
+    "branch": "feat/S4-T1-etapa5-eap",
+    "description": "Mapeo automatico del arbol de objetivos filtrado a la estructura Fin/Proposito/Componentes/Actividades.",
+    "acceptance_criteria": [
+      "Mapeo automatico: fines → Fin, objetivo central → Proposito, medios directos → Componentes, medios indirectos → Actividades",
+      "Solo incluye nodos de la alternativa seleccionada",
+      "Vista previa de la estructura resultante",
+      "Usuario puede ajustar el mapeo manualmente",
+      "Validacion de logica vertical basica"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T2",
+    "title": "Migraciones y modelos para MIR",
+    "type": "feat",
+    "branch": "feat/S4-T2-modelos-mir",
+    "description": "Crear tabla `mir_niveles` y `mir_versiones` (snapshots).\n\n**Campos mir_niveles:**\n- id, programa_presupuestario_id, tipo_nivel (enum), parent_id, resumen_narrativo, supuestos, arbol_nodo_id, orden\n- FKs de alineacion: ped_objetivo_estrategico_id, programa_derivado_objetivo_id, ped_linea_accion_id",
+    "acceptance_criteria": [
+      "Enum: fin, proposito, componente, actividad",
+      "Relacion recursiva parent_id (Actividad → Componente)",
+      "Trazabilidad a arbol_nodos via arbol_nodo_id",
+      "mir_versiones guarda snapshots en JSONB",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T3",
+    "title": "Migraciones y modelos para Indicadores",
+    "type": "feat",
+    "branch": "feat/S4-T3-modelos-indicadores",
+    "description": "Crear tablas: `indicadores`, `indicador_variables`, `catalogo_unidades_medida`, `medios_verificacion`, `cremaa_validaciones`.",
+    "acceptance_criteria": [
+      "`indicadores` con todos los campos de ficha tecnica (nombre, formula_texto, tipo, dimension, frecuencia, sentido, linea_base, meta, rangos semaforo)",
+      "`indicador_variables` con campo `simbolo` (string 5) para evaluacion matematica",
+      "`catalogo_unidades_medida` como catalogo con clave y nombre (seeder CONAC)",
+      "`medios_verificacion` vinculados a indicador",
+      "`cremaa_validaciones` con 6 campos boolean + observacion por letra",
+      "Relaciones Eloquent completas",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T4",
+    "title": "Interfaz de captura MIR 4x4",
+    "type": "feat",
+    "branch": "feat/S4-T4-interfaz-mir-4x4",
+    "description": "Componente Livewire que renderiza la matriz 4x4. Columna 1 (Resumen Narrativo) viene prellenada desde la EAP. El usuario captura las columnas 2, 3 y 4.",
+    "acceptance_criteria": [
+      "Matriz visual 4 filas x 4 columnas",
+      "Col 1 prellenada, editable",
+      "Col 2: formulario de indicador con todos los campos de ficha tecnica",
+      "Col 3: formulario de medios de verificacion",
+      "Col 4: textarea para supuestos",
+      "Multiples componentes e indicadores por nivel (agregar/quitar)",
+      "Guardado automatico (no se pierde trabajo)",
+      "Solo accesible con permiso `editar_mir`"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T5",
+    "title": "Validacion sintactica SHCP del Resumen Narrativo",
+    "type": "feat",
+    "branch": "feat/S4-T5-validacion-sintaxis-shcp",
+    "description": "La IA audita que el Resumen Narrativo de cada nivel cumpla con la sintaxis obligatoria de la SHCP.\n\n**Reglas:**\n- Fin: \"Contribuir a [Impacto] mediante [Solucion]\"\n- Proposito: \"[Poblacion] + [Verbo presente/participio] + [Condicion]\"\n- Componente: \"[Bien/Servicio] + [Participio -ado/-ido]\"\n- Actividad: \"[Sustantivo deverbal] + [Complemento]\"",
+    "acceptance_criteria": [
+      "Al guardar/validar un nivel, la IA analiza la sintaxis",
+      "Resultado: cumple / no cumple con explicacion especifica",
+      "Sugerencia de reescritura que respeta la formula",
+      "El usuario decide si acepta la sugerencia",
+      "No bloquea el guardado (es advertencia, no error)"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T6",
+    "title": "Validacion CREMAA desglosada",
+    "type": "feat",
+    "branch": "feat/S4-T6-validacion-cremaa",
+    "description": "Al crear o editar un indicador, la IA evalua los 6 criterios CREMAA individualmente y guarda el resultado en `cremaa_validaciones`.",
+    "acceptance_criteria": [
+      "Boton \"Validar CREMAA\" en la ficha del indicador",
+      "Resultado visual: 6 letras, cada una en verde (cumple) o rojo (no cumple)",
+      "Cada letra tiene explicacion especifica del fallo",
+      "Sugerencias de mejora por criterio",
+      "Resultado se persiste en la tabla cremaa_validaciones",
+      "No bloquea guardado"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T7",
+    "title": "Validacion de logica vertical y horizontal",
+    "type": "feat",
+    "branch": "feat/S4-T7-validacion-logica",
+    "description": "Validacion automatica de la coherencia interna de la MIR.\n\n**Logica vertical:**\n- Actividades producen Componentes\n- Componentes logran Proposito\n- Proposito contribuye al Fin\n- La IA analiza si la relacion causal es coherente\n\n**Logica horizontal:**\n- El indicador realmente mide el objetivo (Resumen Narrativo)\n- El medio de verificacion puede proporcionar los datos del indicador\n- La frecuencia del medio coincide con la frecuencia del indicador",
+    "acceptance_criteria": [
+      "Boton \"Validar MIR completa\"",
+      "Reporte de validacion con hallazgos por nivel",
+      "Cada hallazgo clasificado: error critico / advertencia / sugerencia",
+      "No bloquea guardado pero se muestra prominentemente"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T8",
+    "title": "Alineacion automatica MIR ↔ Matriz de Alineacion",
+    "type": "feat",
+    "branch": "feat/S4-T8-alineacion-mir",
+    "description": "Al crear una MIR, el sistema sugiere la alineacion con la cascada de planes usando la Matriz de Alineacion y busqueda semantica.\n\n**Flujo:**\n1. Al capturar el Fin, el sistema busca por similitud los Objetivos Estrategicos del PED mas cercanos\n2. Al seleccionar uno, hereda automaticamente: PND y ODS\n3. Al capturar Componentes/Actividades, sugiere Lineas de Accion\n4. Se llenan las FKs de alineacion en mir_niveles",
+    "acceptance_criteria": [
+      "Sugerencias de alineacion usando busqueda semantica",
+      "Herencia automatica al seleccionar un nivel",
+      "Usuario puede aceptar, rechazar o buscar manualmente",
+      "FKs de alineacion guardadas en mir_niveles",
+      "Vista de cadena completa: Linea de Accion → ... → ODS"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T9",
+    "title": "Extraccion de variables de formulas",
+    "type": "feat",
+    "branch": "feat/S4-T9-extraccion-variables",
+    "description": "Al capturar la formula de un indicador, la IA extrae las variables y crea registros en `indicador_variables` con nombre y simbolo.\n\n**Ejemplo:**\n- Formula: `(Alumnos inscritos / Egresados secundaria) x 100`\n- Variables extraidas: A = \"Alumnos inscritos\", B = \"Egresados secundaria\"",
+    "acceptance_criteria": [
+      "Al escribir la formula, boton \"Extraer variables\"",
+      "IA identifica variables y asigna simbolos (A, B, C...)",
+      "Se crean registros en indicador_variables",
+      "Usuario puede editar nombres, simbolos y clasificar comportamiento (acumulable/continua)",
+      "Se selecciona unidad de medida del catalogo CONAC",
+      "Si la IA no puede extraer variables, se marca como hueco critico"
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S4-T10",
+    "title": "Snapshots y versionado de MIR",
+    "type": "feat",
+    "branch": "feat/S4-T10-snapshots-mir",
+    "description": "Implementar el sistema de snapshots que permite crear borradores alternos de la MIR sin destruir el trabajo actual.",
+    "acceptance_criteria": [
+      "Boton \"Crear snapshot\" guarda estado completo en mir_versiones (JSONB)",
+      "Listado de versiones con etiqueta y fecha",
+      "Restaurar una version reemplaza la MIR actual (con confirmacion)",
+      "Al regresar a etapas anteriores (arbol), advertencia de impacto en MIR",
+      "Opcion: \"Crear borrador alterno\" vs \"Sobreescribir actual\""
+    ],
+    "sprint": "Sprint 4"
+  },
+  {
+    "id": "S5-T1",
+    "title": "Parser de Markdown para MIR existentes",
+    "type": "feat",
+    "branch": "feat/S5-T1-parser-markdown-mir",
+    "description": "Importador que acepta un archivo Markdown con la estructura de una MIR existente y lo mapea a las tablas del sistema.\n\n**Formato esperado:** segun plantilla definida en el documento de diseno (con Frecuencia, Tipo/Dimension, Linea Base).",
+    "acceptance_criteria": [
+      "Acepta Markdown con estructura de MIR",
+      "Parsea los 4 niveles (Fin, Proposito, Componentes, Actividades)",
+      "Extrae indicadores con todos los campos de ficha tecnica",
+      "Previsualizacion antes de confirmar importacion",
+      "Manejo de errores de formato con mensajes claros"
+    ],
+    "sprint": "Sprint 5"
+  },
+  {
+    "id": "S5-T2",
+    "title": "Parser de CSV/Excel para MIR existentes",
+    "type": "feat",
+    "branch": "feat/S5-T2-parser-csv-excel-mir",
+    "description": "Importador alternativo que acepta archivos CSV o Excel. Mapeo de columnas configurable.",
+    "acceptance_criteria": [
+      "Acepta CSV y Excel (.xlsx)",
+      "Paso de mapeo: usuario asocia columnas del archivo con campos del sistema",
+      "Previsualizacion del resultado",
+      "Misma logica de creacion de registros que el parser Markdown"
+    ],
+    "sprint": "Sprint 5"
+  },
+  {
+    "id": "S5-T3",
+    "title": "Diagnostico de completitud",
+    "type": "feat",
+    "branch": "feat/S5-T3-diagnostico-completitud",
+    "description": "Tras la importacion, generar reporte que clasifica huecos en criticos y menores.\n\n**Huecos criticos (bloquean seguimiento del indicador):**\n- Variables de formula no identificadas\n- Frecuencia de medicion ausente\n- Linea base y anio base faltantes\n\n**Huecos menores (no bloquean):**\n- Sintaxis del resumen narrativo\n- Supuestos faltantes\n- Medios de verificacion incompletos",
+    "acceptance_criteria": [
+      "Reporte visual: tabla con cada elemento, estado (OK/faltante/critico) y accion sugerida",
+      "Indicadores con huecos criticos marcados como `activo_seguimiento = false`",
+      "Indicadores completos marcados como `activo_seguimiento = true`",
+      "Enlace directo para completar cada hueco"
+    ],
+    "sprint": "Sprint 5"
+  },
+  {
+    "id": "S5-T4",
+    "title": "Flujo asistido para completar huecos",
+    "type": "feat",
+    "branch": "feat/S5-T4-completar-huecos",
+    "description": "Interfaz que guia al usuario por los huecos pendientes de un programa importado. La IA sugiere contenido basado en lo ya importado.",
+    "acceptance_criteria": [
+      "Lista de huecos pendientes ordenados por prioridad (criticos primero)",
+      "Al seleccionar un hueco, formulario de captura con sugerencia de IA",
+      "Al completar huecos criticos de un indicador, se activa automaticamente para seguimiento",
+      "Progreso visible: barra o porcentaje de completitud"
+    ],
+    "sprint": "Sprint 5"
+  },
+  {
+    "id": "S5-T5",
+    "title": "Vinculacion de programas importados con cascada de planes",
+    "type": "feat",
+    "branch": "feat/S5-T5-vinculacion-importados-planes",
+    "description": "Si el programa importado no tiene alineacion, el sistema sugiere vinculos usando la Matriz de Alineacion y busqueda semantica. Si ya tiene, valida contra la Matriz.",
+    "acceptance_criteria": [
+      "Deteccion: programa sin alineacion → flujo de sugerencia",
+      "Deteccion: programa con alineacion → flujo de validacion",
+      "Sugerencias basadas en similitud semantica del Resumen Narrativo",
+      "Advertencias si la alineacion existente contradice la Matriz"
+    ],
+    "sprint": "Sprint 5"
+  },
+  {
+    "id": "S5-T6",
+    "title": "Calendarizacion de metas al activar programa",
+    "type": "feat",
+    "branch": "feat/S5-T6-calendarizacion-metas",
+    "description": "Al activar un programa (nuevo o importado), el sistema genera los registros de `metas_periodo` distribuyendo la meta anual en los periodos segun la frecuencia de cada indicador.",
+    "acceptance_criteria": [
+      "Generacion automatica de periodos con fechas de inicio/fin",
+      "Distribucion de meta anual (el usuario puede ajustar la distribucion)",
+      "Etiquetas legibles: \"Q1 2026\", \"Ene 2026\", \"S1 2026\"",
+      "Validacion: la suma de metas por periodo = meta anual (para variables acumulables)"
+    ],
+    "sprint": "Sprint 5"
+  },
+  {
+    "id": "S6-T1",
+    "title": "Migraciones para tablas de seguimiento",
+    "type": "feat",
+    "branch": "feat/S6-T1-migraciones-seguimiento",
+    "description": "Crear tablas: `metas_periodo`, `avances`, `avance_variables`, `avance_evidencias`, `desbloqueos`.",
+    "acceptance_criteria": [
+      "Todas las migraciones con `up()` y `down()`",
+      "`avances.historial_observaciones` como JSONB",
+      "`avance_evidencias.hash_archivo` para integridad SHA-256",
+      "`desbloqueos` con relacion polimorfica",
+      "Indices en campos de consulta frecuente",
+      "`migrate:fresh --seed` sin errores",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T2",
+    "title": "Calendario de captura y notificaciones",
+    "type": "feat",
+    "branch": "feat/S6-T2-calendario-notificaciones",
+    "description": "El sistema genera automaticamente los periodos de captura abiertos segun la frecuencia de cada indicador y notifica a la UR responsable.",
+    "acceptance_criteria": [
+      "Comando artisan schedulable que detecta periodos por abrir",
+      "Notificacion a operadores de la UR cuando se abre un periodo",
+      "Vista del operador: \"Mis indicadores pendientes de captura\"",
+      "Vista del planeador: \"Indicadores con captura vencida\""
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T3",
+    "title": "Formulario de captura de avance",
+    "type": "feat",
+    "branch": "feat/S6-T3-formulario-captura-avance",
+    "description": "Componente Livewire para que el operador capture los valores de las variables de un indicador en un periodo especifico.\n\n**Flujo:**\n1. Operador selecciona indicador y periodo\n2. Sistema muestra campos por cada variable (con nombre y simbolo)\n3. Al capturar valores, el sistema calcula el resultado aplicando la formula\n4. Se muestra el semaforo sugerido\n5. Si amarillo/rojo: formulario de justificacion obligatorio",
+    "acceptance_criteria": [
+      "Campos dinamicos segun variables del indicador",
+      "Calculo automatico usando MathExecutor con simbolos mapeados",
+      "Semaforo calculado segun rangos y sentido del indicador",
+      "El usuario puede ajustar el semaforo con justificacion",
+      "Solo accesible con permiso `capturar_avance`",
+      "Solo para indicadores con `activo_seguimiento = true`"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T4",
+    "title": "Generacion de justificaciones con IA",
+    "type": "feat",
+    "branch": "feat/S6-T4-justificaciones-ia",
+    "description": "Cuando un indicador cae en amarillo o rojo, la IA genera un borrador de justificacion que el usuario edita y aprueba.\n\n**Fuentes de la IA (exclusivamente):**\n- Supuestos del nivel correspondiente (Col. 4 de la MIR)\n- Magnitud numerica de la desviacion respecto a la meta del periodo\n- Historial del indicador (ejercicio anterior si existe)",
+    "acceptance_criteria": [
+      "Borrador generado automaticamente al detectar amarillo/rojo",
+      "El borrador cita explicitamente los supuestos de la MIR",
+      "El usuario puede editar libremente antes de guardar",
+      "El texto final se guarda en `avances.justificacion_final`",
+      "El borrador de IA se guarda en `avances.justificacion_ia` (para auditoria)",
+      "La IA nunca inventa contexto externo"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T5",
+    "title": "Adjuntar medios de verificacion (evidencia)",
+    "type": "feat",
+    "branch": "feat/S6-T5-adjuntar-evidencia",
+    "description": "Funcionalidad para que el operador adjunte archivos de evidencia por cada avance reportado.",
+    "acceptance_criteria": [
+      "Upload de archivos (PDF, Excel, imagenes)",
+      "Registro de: nombre, area generadora, fecha del documento",
+      "Generacion automatica de hash SHA-256 al subir",
+      "Validacion: el medio adjuntado corresponde al registrado en la MIR (advertencia si difiere)",
+      "Almacenamiento seguro (no accesible publicamente)"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T6",
+    "title": "Maquina de estados del reporte de avance",
+    "type": "feat",
+    "branch": "feat/S6-T6-maquina-estados-avance",
+    "description": "Implementar el flujo de estados: En Captura → En Revision → Observado → Aprobado y Congelado.",
+    "acceptance_criteria": [
+      "Estado inicial: `en_captura` (editable por operador)",
+      "Transicion a `en_revision`: operador \"envia\" el reporte. Se bloquea para edicion",
+      "Transicion a `observado`: planeador rechaza con comentarios (se agregan al historial JSONB)",
+      "Transicion a `aprobado`: planeador aprueba. Se registra `congelado_at`",
+      "Post-aprobacion: ni variables, ni justificacion, ni archivos son editables",
+      "Notificacion al operador cuando su reporte es observado",
+      "Notificacion al planeador cuando hay reportes en revision",
+      "Solo planeador puede aprobar (`aprobar_avance`)",
+      "Historial de observaciones visible como timeline"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T7",
+    "title": "Congelamiento y desbloqueo excepcional",
+    "type": "feat",
+    "branch": "feat/S6-T7-congelamiento-desbloqueo",
+    "description": "Implementar la inmutabilidad post-aprobacion y el flujo de desbloqueo excepcional con registro de auditoria.",
+    "acceptance_criteria": [
+      "Avance aprobado: todos los campos inmutables",
+      "Archivo adjunto congelado: no se puede reemplazar ni eliminar",
+      "Flujo de desbloqueo: operador solicita → admin aprueba/rechaza",
+      "Registro en tabla `desbloqueos` con motivo, solicitante, aprobador",
+      "Al desbloquear, se crea entrada en el historial de observaciones",
+      "Solo admin puede aprobar desbloqueos"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S6-T8",
+    "title": "Vista de seguimiento para planeadores",
+    "type": "feat",
+    "branch": "feat/S6-T8-vista-seguimiento-planeador",
+    "description": "Panel consolidado donde el planeador ve todos los programas de su UR con sus indicadores, metas, avances y semaforos.",
+    "acceptance_criteria": [
+      "Tabla resumen: Nivel | Indicador | Meta periodo | Avance | Semaforo",
+      "Expandible: al clic, muestra historial de capturas, variables, justificacion, evidencia",
+      "Filtros: por programa, por estado de avance, por semaforo",
+      "Vista comparativa: ejercicio actual vs anterior (side by side)",
+      "Solo accesible con permiso `revisar_avance`"
+    ],
+    "sprint": "Sprint 6"
+  },
+  {
+    "id": "S7-T1",
+    "title": "Migraciones para evaluacion",
+    "type": "feat",
+    "branch": "feat/S7-T1-migraciones-evaluacion",
+    "description": "Crear tablas: `evaluaciones_programa`, `anexos_transversales`, `indicador_anexo_transversal`.",
+    "acceptance_criteria": [
+      "Migraciones completas",
+      "Seeder para anexos transversales base (Genero, NNA, Cambio Climatico, Anticorrupcion)",
+      "Pivote M:M entre indicadores y anexos transversales",
+      "`evaluaciones_programa` con indice de desempeno y conteos de semaforo",
+      "Actualizar documentacion del esquema"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T2",
+    "title": "Etiquetado de indicadores con Anexos Transversales",
+    "type": "feat",
+    "branch": "feat/S7-T2-etiquetado-anexos-transversales",
+    "description": "En la ficha del indicador (Sprint 4) o al importar, permitir etiquetar cada indicador con una o mas tematicas transversales.",
+    "acceptance_criteria": [
+      "Checkboxes de anexos transversales en la ficha del indicador",
+      "Guardado en tabla pivote",
+      "Visible en la vista de MIR y en el panel de seguimiento"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T3",
+    "title": "Calculo del Indice de Desempeno General",
+    "type": "feat",
+    "branch": "feat/S7-T3-indice-desempeno",
+    "description": "Calcular el indice 0-100 por programa al cierre del ejercicio. Promedio ponderado del porcentaje de avance de metas, con mayor peso a niveles superiores.\n\n**Pesos sugeridos:**\n- Fin: 40%\n- Proposito: 30%\n- Componentes: 20%\n- Actividades: 10%",
+    "acceptance_criteria": [
+      "Comando artisan que calcula y guarda en `evaluaciones_programa`",
+      "Conteo de semaforos (verde, amarillo, rojo, sin dato) incluido",
+      "Pesos configurables (no hardcodeados)",
+      "El calculo solo considera indicadores con `activo_seguimiento = true`"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T4",
+    "title": "Evaluacion por programa — Vista de cierre",
+    "type": "feat",
+    "branch": "feat/S7-T4-evaluacion-programa",
+    "description": "Pantalla de evaluacion integral al cierre del ejercicio fiscal para un programa especifico.\n\n**Secciones:**\n1. Resumen ejecutivo (alineacion, objetivo central)\n2. Tablero de semaforos consolidado\n3. Comparativa vs ejercicio anterior con tendencias\n4. Analisis de desviaciones (justificaciones aprobadas, supuestos incumplidos)\n5. Indicadores cronicos en rojo (2+ ejercicios)",
+    "acceptance_criteria": [
+      "Vista completa con las 5 secciones",
+      "Tendencia por indicador: mejoro / empeoro / estable",
+      "Indicadores cronicos destacados visualmente",
+      "Solo accesible con permiso `exportar_reportes`"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T5",
+    "title": "Validacion de logica vertical al cierre",
+    "type": "feat",
+    "branch": "feat/S7-T5-logica-vertical-cierre",
+    "description": "La IA analiza los semaforos por nivel y detecta rupturas en la cadena causal.\n\n**Ejemplo de ruptura:**\n- Actividades en verde + Componente en rojo = problema de diseno (la solucion no sirve)\n- Componente en verde + Proposito en rojo = factores externos (supuestos no cumplidos)",
+    "acceptance_criteria": [
+      "Analisis automatico al generar evaluacion",
+      "Reporte de rupturas con explicacion por caso",
+      "Sugerencia: problema de ejecucion vs problema de diseno",
+      "La IA no emite juicios de valor sobre las UR"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T6",
+    "title": "Paneles de evaluacion transversal",
+    "type": "feat",
+    "branch": "feat/S7-T6-evaluacion-transversal",
+    "description": "Paneles que cruzan todos los programas del estado para dar vision global al planeador.\n\n**Vistas:**\n- Por Eje del PED: conteo de semaforos e indice promedio\n- Por ODS: indicadores que contribuyen a cada ODS\n- Por Unidad Responsable: desempeno por dependencia\n- Por Anexo Transversal: filtro por tematica cruzando dependencias",
+    "acceptance_criteria": [
+      "4 vistas funcionales con filtros",
+      "Ranqueo por indice de desempeno",
+      "Datos derivados de la Matriz de Alineacion (herencia funcional)",
+      "Solo accesible con permiso `exportar_reportes`"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T7",
+    "title": "Exportacion a PDF y Excel",
+    "type": "feat",
+    "branch": "feat/S7-T7-exportacion-pdf-excel",
+    "description": "Generar reportes exportables en formato PDF y Excel.\n\n**Reportes:**\n- MIR en formato oficial\n- Fichas tecnicas de indicadores\n- Reporte de avance trimestral por programa\n- Reporte de evaluacion anual por programa\n- Reporte transversal por Eje PED / ODS / Anexo",
+    "acceptance_criteria": [
+      "Cada reporte incluye sello de tiempo y periodo evaluado",
+      "PDF con formato profesional (encabezado institucional configurable)",
+      "Excel con hojas separadas por seccion",
+      "Descarga funcional desde la interfaz",
+      "Solo accesible con permiso `exportar_reportes`"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S7-T8",
+    "title": "Exportacion de datos abiertos con Diccionario",
+    "type": "feat",
+    "branch": "feat/S7-T8-datos-abiertos",
+    "description": "Exportar datos en CSV y JSON, empaquetados con un archivo de metadatos (Diccionario de Datos) que describe cada campo.",
+    "acceptance_criteria": [
+      "Exportacion CSV con codificacion UTF-8",
+      "Exportacion JSON estructurado",
+      "Diccionario de datos generado automaticamente (nombre de campo, tipo, descripcion)",
+      "Empaquetado en ZIP: datos + diccionario",
+      "Cumple con requisitos de la Ley General de Transparencia"
+    ],
+    "sprint": "Sprint 7"
+  },
+  {
+    "id": "S8-T1",
+    "title": "Refactorizar LlmService con patrones avanzados",
+    "type": "refactor",
+    "branch": "refactor/S8-T1-llm-service-avanzado",
+    "description": "Consolidar el servicio de IA creado en S3-T8, agregando todos los metodos especificos del dominio que se fueron necesitando en sprints anteriores.\n\n**Metodos consolidados:**\n- `suggestNarrativeSyntax($nivel, $texto)` — Validacion SHCP\n- `validateCremaa($indicador)` — Validacion CREMAA\n- `validateVerticalLogic($mir)` — Logica vertical\n- `validateHorizontalLogic($nivel)` — Logica horizontal\n- `extractVariables($formula)` — Extraccion de variables\n- `generateJustification($avance, $supuestos, $historial)` — Justificaciones\n- `suggestAlignment($texto, $nivel)` — Sugerencias de alineacion\n- `detectCausalBreaks($evaluacion)` — Rupturas en logica vertical al cierre",
+    "acceptance_criteria": [
+      "Todos los metodos centralizados en un solo servicio",
+      "Cada metodo tiene su prompt template versionado",
+      "Tests unitarios con mocks para cada metodo",
+      "Logging unificado de todas las interacciones",
+      "Rate limiting por usuario/sesion"
+    ],
+    "sprint": "Sprint 8"
+  },
+  {
+    "id": "S8-T2",
+    "title": "Pipeline de embeddings batch",
+    "type": "feat",
+    "branch": "feat/S8-T2-embeddings-batch",
+    "description": "Comando artisan para generar/regenerar embeddings en batch para todos los registros que no los tengan o necesiten actualizacion.",
+    "acceptance_criteria": [
+      "`php artisan embeddings:generate` procesa todos los registros pendientes",
+      "Procesamiento en chunks para no saturar el API",
+      "Reporte al finalizar: N generados, M fallidos, X omitidos",
+      "Flag `--force` para regenerar todos",
+      "Schedulable para ejecucion nocturna"
+    ],
+    "sprint": "Sprint 8"
+  },
+  {
+    "id": "S8-T3",
+    "title": "Monitoreo y metricas de uso de IA",
+    "type": "feat",
+    "branch": "feat/S8-T3-monitoreo-ia",
+    "description": "Dashboard para el administrador que muestre metricas de uso del servicio de IA.\n\n**Metricas:**\n- Llamadas por dia/semana/mes\n- Tokens consumidos\n- Tiempo promedio de respuesta\n- Tasa de error\n- Uso por tipo de operacion (validacion, sugerencia, justificacion)\n- Uso por usuario/UR",
+    "acceptance_criteria": [
+      "Tabla de logs de IA con campos: tipo, usuario, tokens, duracion, status",
+      "Dashboard con graficas basicas",
+      "Solo accesible para admin"
+    ],
+    "sprint": "Sprint 8"
+  }
+]
